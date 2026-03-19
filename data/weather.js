@@ -140,3 +140,94 @@ export function buildWeatherContext(w) {
     `3-day forecast highs: ${w.forecast.map(d => d.tempMax + '°F').join(', ')}.`
   );
 }
+
+export async function getForecastData(latitude, longitude) {
+  const weatherRes = await fetch(
+    `${BASE_URL}?latitude=${latitude}&longitude=${longitude}` +
+    `&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,` +
+    `precipitation_sum,weather_code,wind_speed_10m_max` +
+    `&hourly=relative_humidity_2m,us_aqi` +
+    `&temperature_unit=fahrenheit` +
+    `&wind_speed_unit=mph` +
+    `&forecast_days=7` +
+    `&timezone=auto`
+  );
+  const weatherData = await weatherRes.json();
+
+  const aqRes = await fetch(
+    `${AQ_URL}?latitude=${latitude}&longitude=${longitude}` +
+    `&daily=us_aqi_max,pm2_5_max` +
+    `&hourly=birch_pollen,grass_pollen,ragweed_pollen` +
+    `&forecast_days=7` +
+    `&timezone=auto`
+  );
+  const aqData = await aqRes.json();
+
+  const daily      = weatherData.daily;
+  const aqDaily    = aqData.daily;
+  const aqHourly   = aqData.hourly;
+
+  // Build 7-day forecast array
+  const days = (daily?.time ?? []).map((date, i) => {
+    const maxPollen = Math.max(
+      aqHourly?.birch_pollen?.[i * 24]    ?? 0,
+      aqHourly?.grass_pollen?.[i * 24]    ?? 0,
+      aqHourly?.ragweed_pollen?.[i * 24]  ?? 0,
+    );
+
+    const humidity = weatherData.hourly?.relative_humidity_2m?.[i * 24] ?? 0;
+    const rainProb = daily?.precipitation_probability_max?.[i] ?? 0;
+    const rainSum  = daily?.precipitation_sum?.[i] ?? 0;
+    const tempMax  = Math.round(daily?.temperature_2m_max?.[i] ?? 0);
+    const tempMin  = Math.round(daily?.temperature_2m_min?.[i] ?? 0);
+    const aqi      = aqDaily?.us_aqi_max?.[i] ?? 0;
+    const pm25     = Math.round(aqDaily?.pm2_5_max?.[i] ?? 0);
+    const wind     = Math.round(daily?.wind_speed_10m_max?.[i] ?? 0);
+    const code     = daily?.weather_code?.[i] ?? 0;
+
+    // Haven risk scores
+    const moldRisk    = humidity > 65 && rainProb > 40
+      ? 'High' : humidity > 55 && rainProb > 25
+      ? 'Moderate' : 'Low';
+
+    const allergenRisk = maxPollen > 200
+      ? 'Very High' : maxPollen > 50
+      ? 'High' : maxPollen > 10
+      ? 'Moderate' : 'Low';
+
+    const smokeRisk = aqi > 150
+      ? 'High' : aqi > 100
+      ? 'Moderate' : 'Low';
+
+    const pipeFreezeRisk = tempMin < 32
+      ? 'High' : tempMin < 38
+      ? 'Moderate' : 'Low';
+
+    return {
+      date,
+      dayLabel:  getDayLabel(date, i),
+      tempMax,
+      tempMin,
+      rainProb,
+      rainSum:   Math.round(rainSum * 10) / 10,
+      humidity:  Math.round(humidity),
+      aqi,
+      pm25,
+      wind,
+      condition: getWeatherCondition(code),
+      moldRisk,
+      allergenRisk,
+      smokeRisk,
+      pipeFreezeRisk,
+    };
+  });
+
+  return { days };
+}
+
+function getDayLabel(dateStr, index) {
+  if (index === 0) return 'Today';
+  if (index === 1) return 'Tomorrow';
+  const date = new Date(dateStr + 'T12:00:00');
+  return date.toLocaleDateString('en-US', { weekday: 'short' });
+}
