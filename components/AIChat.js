@@ -6,20 +6,17 @@ import {
 import { colors, radius, spacing } from '../theme';
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const MODEL = 'meta-llama/llama-3.2-3b-instruct:free'; //Switch to anthropic/claude when I have funds for it; around 5 bucks for prototyping?
+const MODEL = 'meta-llama/llama-3.2-3b-instruct:free';
 
-export default function AIChat({ visible, onClose, scenario, roomName }) {
-  const [messages, setMessages] = React.useState([
-    {
-      role: 'assistant',
-      text: `Hi — I'm looking at your ${roomName} right now. The air quality is currently ${scenario?.statusText?.toLowerCase()}. What would you like to know?`,
-    }
-  ]);
+export default function AIChat({ visible, onClose, scenario, roomName, weatherContext }) {
+  const [messages, setMessages] = React.useState([{
+    role: 'assistant',
+    text: `Hi — I'm looking at your ${roomName} right now. The air quality is currently ${scenario?.statusText?.toLowerCase()}. What would you like to know?`,
+  }]);
   const [input, setInput]     = React.useState('');
   const [loading, setLoading] = React.useState(false);
   const scrollRef             = React.useRef(null);
 
-  // Reset messages when room or scenario changes
   React.useEffect(() => {
     setMessages([{
       role: 'assistant',
@@ -31,8 +28,16 @@ export default function AIChat({ visible, onClose, scenario, roomName }) {
     const readings = scenario.metrics
       .map(m => `${m.name}: ${m.val} ${m.unit} (${m.status})`)
       .join(', ');
-    //role prompt
-      return `You are Haven AI, an expert environmental health assistant built into the Haven home air quality app. You are currently monitoring the ${roomName}. Current sensor readings: ${readings}. Overall status: ${scenario.statusText}. Answer the user's questions concisely in 2-4 sentences. Use plain language. Be direct about health concerns. No markdown, no bullet points, just plain conversational sentences.`;
+    return (
+      `You are Haven AI, an expert environmental health assistant built into the Haven home air quality app. ` +
+      `You are currently monitoring the ${roomName}. ` +
+      `Current sensor readings: ${readings}. ` +
+      `Overall status: ${scenario.statusText}. ` +
+      `${weatherContext ? 'Outdoor context: ' + weatherContext : ''} ` +
+      `Answer the user's questions concisely in 2-4 sentences. ` +
+      `Use plain language. Be direct about health concerns. ` +
+      `No markdown, no bullet points, just plain conversational sentences.`
+    );
   };
 
   const sendMessage = async () => {
@@ -62,8 +67,8 @@ export default function AIChat({ visible, onClose, scenario, roomName }) {
       });
 
       const data = await res.json();
-      console.log('OpenRouter response:', JSON.stringify(data));
-      const reply = data.choices?.[0]?.message?.content || "I couldn't get a response — try again.";
+      const reply = data.choices?.[0]?.message?.content
+        || "I couldn't get a response — try again.";
       setMessages(prev => [...prev, { role: 'assistant', text: reply }]);
 
     } catch (e) {
@@ -78,7 +83,6 @@ export default function AIChat({ visible, onClose, scenario, roomName }) {
   };
 
   const QUICK_PROMPTS = [
-    //failsafes
     'Is this safe?',
     'What should I do?',
     'Why is this happening?',
@@ -99,8 +103,9 @@ export default function AIChat({ visible, onClose, scenario, roomName }) {
         >
           <Pressable onPress={e => e.stopPropagation()} style={{ flex: 1 }}>
 
-            {/* HANDLE + HEADER */}
             <View style={styles.handle} />
+
+            {/* HEADER */}
             <View style={styles.header}>
               <View style={styles.headerLeft}>
                 <View style={styles.avatar}>
@@ -108,7 +113,9 @@ export default function AIChat({ visible, onClose, scenario, roomName }) {
                 </View>
                 <View>
                   <Text style={styles.headerName}>Haven AI</Text>
-                  <Text style={styles.headerSub}>{roomName} · {scenario?.badge}</Text>
+                  <Text style={styles.headerSub}>
+                    {roomName} · {scenario?.badge}
+                  </Text>
                 </View>
               </View>
               <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
@@ -122,7 +129,9 @@ export default function AIChat({ visible, onClose, scenario, roomName }) {
               style={styles.messages}
               contentContainerStyle={styles.messagesContent}
               showsVerticalScrollIndicator={false}
-              onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
+              onContentSizeChange={() =>
+                scrollRef.current?.scrollToEnd({ animated: true })
+              }
             >
               {messages.map((msg, i) => (
                 <View
@@ -134,14 +143,16 @@ export default function AIChat({ visible, onClose, scenario, roomName }) {
                 >
                   <Text style={[
                     styles.bubbleText,
-                    msg.role === 'user' ? styles.bubbleTextUser : styles.bubbleTextAI,
+                    msg.role === 'user'
+                      ? styles.bubbleTextUser
+                      : styles.bubbleTextAI,
                   ]}>
                     {msg.text}
                   </Text>
                 </View>
               ))}
               {loading && (
-                <View style={styles.bubbleAI}>
+                <View style={[styles.bubble, styles.bubbleAI]}>
                   <Text style={styles.bubbleTextAI}>Thinking…</Text>
                 </View>
               )}
@@ -157,7 +168,7 @@ export default function AIChat({ visible, onClose, scenario, roomName }) {
                 <TouchableOpacity
                   key={qp}
                   style={styles.quickPrompt}
-                  onPress={() => { setInput(qp); }}
+                  onPress={() => setInput(qp)}
                   activeOpacity={0.7}
                 >
                   <Text style={styles.quickPromptText}>{qp}</Text>
@@ -195,54 +206,55 @@ export default function AIChat({ visible, onClose, scenario, roomName }) {
 }
 
 const styles = StyleSheet.create({
-  overlay:          { flex: 1, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'flex-end' },
-  sheet:            { backgroundColor: colors.white, borderTopLeftRadius: radius.xl,
-                      borderTopRightRadius: radius.xl, height: '80%' },
+  overlay:         { flex: 1, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'flex-end' },
+  sheet:           { backgroundColor: colors.white, borderTopLeftRadius: radius.xl,
+                     borderTopRightRadius: radius.xl, height: '80%' },
 
-  handle:           { width: 36, height: 4, backgroundColor: colors.border,
-                      borderRadius: 2, alignSelf: 'center', marginTop: 12, marginBottom: 4 },
+  handle:          { width: 36, height: 4, backgroundColor: colors.border,
+                     borderRadius: 2, alignSelf: 'center', marginTop: 12, marginBottom: 4 },
 
-  header:           { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-                      backgroundColor: colors.green, padding: spacing.lg },
-  headerLeft:       { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  avatar:           { width: 34, height: 34, borderRadius: 17,
-                      backgroundColor: 'rgba(255,255,255,0.15)',
-                      alignItems: 'center', justifyContent: 'center' },
-  avatarDot:        { width: 12, height: 12, borderRadius: 6, backgroundColor: 'rgba(255,255,255,0.9)' },
-  headerName:       { fontSize: 14, fontWeight: '600', color: colors.white },
-  headerSub:        { fontSize: 11, color: 'rgba(255,255,255,0.55)', marginTop: 1 },
-  closeBtn:         { width: 30, height: 30, borderRadius: 15,
-                      backgroundColor: 'rgba(255,255,255,0.15)',
-                      alignItems: 'center', justifyContent: 'center' },
-  closeBtnText:     { color: colors.white, fontSize: 13, fontWeight: '500' },
+  header:          { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+                     backgroundColor: colors.green, padding: spacing.lg },
+  headerLeft:      { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  avatar:          { width: 34, height: 34, borderRadius: 17,
+                     backgroundColor: 'rgba(255,255,255,0.15)',
+                     alignItems: 'center', justifyContent: 'center' },
+  avatarDot:       { width: 12, height: 12, borderRadius: 6,
+                     backgroundColor: 'rgba(255,255,255,0.9)' },
+  headerName:      { fontSize: 14, fontWeight: '600', color: colors.white },
+  headerSub:       { fontSize: 11, color: 'rgba(255,255,255,0.55)', marginTop: 1 },
+  closeBtn:        { width: 30, height: 30, borderRadius: 15,
+                     backgroundColor: 'rgba(255,255,255,0.15)',
+                     alignItems: 'center', justifyContent: 'center' },
+  closeBtnText:    { color: colors.white, fontSize: 13, fontWeight: '500' },
 
-  messages:         { flex: 1 },
-  messagesContent:  { padding: spacing.lg, gap: spacing.md },
+  messages:        { flex: 1 },
+  messagesContent: { padding: spacing.lg, gap: spacing.md },
 
-  bubble:           { maxWidth: '85%', padding: spacing.md,
-                      borderRadius: radius.lg },
-  bubbleUser:       { backgroundColor: colors.cream2, alignSelf: 'flex-end',
-                      borderBottomRightRadius: 4 },
-  bubbleAI:         { backgroundColor: colors.green, alignSelf: 'flex-start',
-                      borderBottomLeftRadius: 4 },
-  bubbleText:       { fontSize: 14, lineHeight: 21 },
-  bubbleTextUser:   { color: colors.text },
-  bubbleTextAI:     { color: 'rgba(255,255,255,0.92)' },
+  bubble:          { maxWidth: '85%', padding: spacing.md, borderRadius: radius.lg },
+  bubbleUser:      { backgroundColor: colors.cream2, alignSelf: 'flex-end',
+                     borderBottomRightRadius: 4 },
+  bubbleAI:        { backgroundColor: colors.green, alignSelf: 'flex-start',
+                     borderBottomLeftRadius: 4 },
+  bubbleText:      { fontSize: 14, lineHeight: 21 },
+  bubbleTextUser:  { color: colors.text },
+  bubbleTextAI:    { color: 'rgba(255,255,255,0.92)' },
 
-  quickPrompts:     { paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, gap: 5 },
-  quickPrompt:      { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20,
-                      borderWidth: 1.5, borderColor: colors.border, backgroundColor: colors.white },
-  quickPromptText:  { fontSize: 12, color: colors.text, fontWeight: '500', whitespace: 'nowrap' },
+  quickPrompts:    { paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, gap: 8 },
+  quickPrompt:     { paddingHorizontal: 14, paddingVertical: 7,
+                     borderRadius: 20, borderWidth: 1.5, borderColor: colors.border,
+                     backgroundColor: colors.white, alignSelf: 'flex-start' },
+  quickPromptText: { fontSize: 12, color: colors.text, fontWeight: '500' },
 
-  inputRow:         { flexDirection: 'row', gap: 8, padding: spacing.lg,
-                      borderTopWidth: 1, borderTopColor: colors.border,
-                      backgroundColor: colors.cream },
-  input:            { flex: 1, backgroundColor: colors.white, borderRadius: radius.sm,
-                      borderWidth: 1.5, borderColor: colors.border,
-                      paddingHorizontal: 14, paddingVertical: 9,
-                      fontSize: 14, color: colors.text },
-  sendBtn:          { backgroundColor: colors.green, borderRadius: radius.sm,
-                      paddingHorizontal: 18, paddingVertical: 9, justifyContent: 'center' },
-  sendBtnDisabled:  { opacity: 0.6 },
-  sendBtnText:      { color: colors.white, fontSize: 13, fontWeight: '600' },
+  inputRow:        { flexDirection: 'row', gap: 8, padding: spacing.lg,
+                     borderTopWidth: 1, borderTopColor: colors.border,
+                     backgroundColor: colors.cream },
+  input:           { flex: 1, backgroundColor: colors.white, borderRadius: radius.sm,
+                     borderWidth: 1.5, borderColor: colors.border,
+                     paddingHorizontal: 14, paddingVertical: 9,
+                     fontSize: 14, color: colors.text },
+  sendBtn:         { backgroundColor: colors.green, borderRadius: radius.sm,
+                     paddingHorizontal: 18, paddingVertical: 9, justifyContent: 'center' },
+  sendBtnDisabled: { opacity: 0.6 },
+  sendBtnText:     { color: colors.white, fontSize: 13, fontWeight: '600' },
 });

@@ -1,5 +1,7 @@
 import React from 'react';
 import AIChat from '../components/AIChat';
+import WeatherStrip from '../components/weatherstrip.js';
+import { getWeatherData, buildWeatherContext } from '../data/weather';
 import {
   View, Text, ScrollView, StyleSheet,
   TouchableOpacity, Modal, Pressable,
@@ -29,15 +31,29 @@ const STATUS_BG = {
   danger: colors.dangerBg,
 };
 
-
 export default function HomeScreen() {
-  const [chatOpen, setChatOpen] = React.useState(false);
   const insets = useSafeAreaInsets();
-  const [activeRoom, setActiveRoom]         = React.useState('kitchen');
-  const [activeScenario, setActiveScenario] = React.useState('normal');
-  const [pickerOpen, setPickerOpen]         = React.useState(false);
+  const [activeRoom, setActiveRoom]             = React.useState('kitchen');
+  const [activeScenario, setActiveScenario]     = React.useState('normal');
+  const [pickerOpen, setPickerOpen]             = React.useState(false);
+  const [chatOpen, setChatOpen]                 = React.useState(false);
+  const [weather, setWeather]                   = React.useState(null);
+  const [weatherLoading, setWeatherLoading]     = React.useState(true);
+  const [weatherError, setWeatherError]         = React.useState(null);
 
   const scenario = SCENARIOS[activeScenario];
+
+  React.useEffect(() => {
+    getWeatherData()
+      .then(data => {
+        setWeather(data);
+        setWeatherLoading(false);
+      })
+      .catch(err => {
+        setWeatherError(err.message);
+        setWeatherLoading(false);
+      });
+  }, []);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -131,13 +147,30 @@ export default function HomeScreen() {
 
         {/* ALERT STRIP */}
         {scenario.alert && (
-          <View style={[styles.alertStrip, { backgroundColor: STATUS_BG[scenario.statusCls], borderColor: scenario.statusCls === 'danger' ? '#EF9A9A' : '#FFCC80' }]}>
+          <View style={[
+            styles.alertStrip,
+            {
+              backgroundColor: STATUS_BG[scenario.statusCls],
+              borderColor: scenario.statusCls === 'danger' ? '#EF9A9A' : '#FFCC80',
+            }
+          ]}>
             <Text style={styles.alertIcon}>⚠️</Text>
-            <Text style={[styles.alertText, { color: scenario.statusCls === 'danger' ? colors.danger : colors.warn }]}>
+            <Text style={[
+              styles.alertText,
+              { color: scenario.statusCls === 'danger' ? colors.danger : colors.warn }
+            ]}>
               {scenario.alert}
             </Text>
           </View>
         )}
+
+        {/* WEATHER STRIP */}
+        <Text style={styles.sectionLabel}>Outdoor Conditions</Text>
+        <WeatherStrip
+          weather={weather}
+          loading={weatherLoading}
+          error={weatherError}
+        />
 
         {/* METRICS */}
         <Text style={styles.sectionLabel}>Sensor Readings</Text>
@@ -155,20 +188,28 @@ export default function HomeScreen() {
               <Text style={[styles.metricVal, { color: STATUS_COLORS[m.cls] }]}>{m.val}</Text>
               <Text style={styles.metricUnit}>{m.unit}</Text>
               <View style={styles.barTrack}>
-                <View style={[styles.barFill, { width: `${m.bar}%`, backgroundColor: STATUS_COLORS[m.cls] }]} />
+                <View style={[
+                  styles.barFill,
+                  { width: `${m.bar}%`, backgroundColor: STATUS_COLORS[m.cls] }
+                ]} />
               </View>
-              <Text style={[styles.metricStatus, { color: STATUS_COLORS[m.cls] }]}>{m.status}</Text>
+              <Text style={[styles.metricStatus, { color: STATUS_COLORS[m.cls] }]}>
+                {m.status}
+              </Text>
             </View>
           ))}
         </View>
 
         {/* INSIGHT BUTTON */}
-        <TouchableOpacity style={styles.insightBtn} activeOpacity={0.85} onPress={() => setChatOpen(true)}>
+        <TouchableOpacity
+          style={styles.insightBtn}
+          activeOpacity={0.85}
+          onPress={() => setChatOpen(true)}
+        >
           <Text style={styles.insightBtnText}>Ask AI what this means</Text>
         </TouchableOpacity>
 
       </ScrollView>
-
 
       {/* SCENARIO PICKER MODAL */}
       <Modal
@@ -214,12 +255,16 @@ export default function HomeScreen() {
           </Pressable>
         </Pressable>
       </Modal>
-       <AIChat
+
+      {/* AI CHAT */}
+      <AIChat
         visible={chatOpen}
         onClose={() => setChatOpen(false)}
         scenario={scenario}
         roomName={ROOMS.find(r => r.id === activeRoom)?.label}
-      />     
+        weatherContext={buildWeatherContext(weather)}
+      />
+
     </View>
   );
 }
