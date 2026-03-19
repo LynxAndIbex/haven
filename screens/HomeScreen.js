@@ -1,4 +1,5 @@
 import React from 'react';
+import AIChat from '../components/AIChat';
 import {
   View, Text, ScrollView, StyleSheet,
   TouchableOpacity, Modal, Pressable,
@@ -28,7 +29,9 @@ const STATUS_BG = {
   danger: colors.dangerBg,
 };
 
+
 export default function HomeScreen() {
+  const [chatOpen, setChatOpen] = React.useState(false);
   const insets = useSafeAreaInsets();
   const [activeRoom, setActiveRoom]         = React.useState('kitchen');
   const [activeScenario, setActiveScenario] = React.useState('normal');
@@ -160,11 +163,12 @@ export default function HomeScreen() {
         </View>
 
         {/* INSIGHT BUTTON */}
-        <TouchableOpacity style={styles.insightBtn} activeOpacity={0.85}>
+        <TouchableOpacity style={styles.insightBtn} activeOpacity={0.85} onPress={() => setChatOpen(true)}>
           <Text style={styles.insightBtnText}>Ask AI what this means</Text>
         </TouchableOpacity>
 
       </ScrollView>
+
 
       {/* SCENARIO PICKER MODAL */}
       <Modal
@@ -210,7 +214,12 @@ export default function HomeScreen() {
           </Pressable>
         </Pressable>
       </Modal>
-
+       <AIChat
+        visible={chatOpen}
+        onClose={() => setChatOpen(false)}
+        scenario={scenario}
+        roomName={ROOMS.find(r => r.id === activeRoom)?.label}
+      />     
     </View>
   );
 }
