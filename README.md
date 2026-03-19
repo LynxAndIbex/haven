@@ -1,9 +1,13 @@
-### Welcome to HAVEN!
+# Welcome to Project Haven
 
-# this is the prototype iteration of an app to track particulate matter and pollutants linked to an Airthings API!
+Please use the dev (development) branch for all commits
 
-# to start, make sure you have Expo Go on your phone.
+This project IS open-sourced, however it will likely not remain as such.
 
-# pop open a new terminal, run `npx expo start` , then scan the QR code generated with your phone camera
+### TO DEPLOY:
 
-# boom, it opens
+Simply deploy by running npx expo start. Currently, the app version is a little shaky. We're relying on the web version.
+To deploy the web version, run `npx expo start --web`
+
+You may need to install dependencies. Do so using: `npx expo install @react-navigation/native @react-navigation/bottom-tabs react-native-screens react-native-safe-area-context`
+
