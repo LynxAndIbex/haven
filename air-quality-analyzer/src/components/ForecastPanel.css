@@ -1,0 +1,240 @@
+.forecast-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.forecast-panel--loading,
+.forecast-panel--error {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 32px;
+    justify-content: center;
+    color: #9CA3AF;
+    font-size: 14px;
+}
+
+.forecast-panel__day-strip {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+
+.forecast-panel__day-pill {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 10px 16px;
+    border-radius: 12px;
+    border: 1.5px solid #E5E7EB;
+    background: white;
+    cursor: pointer;
+    min-width: 90px;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.forecast-panel__day-pill:hover {
+    border-color: #9CA3AF;
+}
+
+.forecast-panel__day-pill.active {
+    background: #14532D;
+    border-color: #14532D;
+}
+
+.forecast-panel__day-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #1F2937;
+}
+
+.forecast-panel__day-condition {
+    font-size: 10px;
+    color: #9CA3AF;
+}
+
+.forecast-panel__day-temp {
+    font-size: 12px;
+    font-weight: 500;
+    color: #1F2937;
+}
+
+.forecast-panel__day-rain {
+    font-size: 10px;
+    color: #9CA3AF;
+}
+
+.forecast-panel__day-pill.active .forecast-panel__day-label,
+.forecast-panel__day-pill.active .forecast-panel__day-temp {
+    color: white;
+}
+
+.forecast-panel__day-pill.active .forecast-panel__day-condition,
+.forecast-panel__day-pill.active .forecast-panel__day-rain {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.forecast-panel__summary-card {
+    background: white;
+    border: 1.5px solid #E5E7EB;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.forecast-panel__summary-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+}
+
+.forecast-panel__summary-day {
+    font-size: 20px;
+    font-weight: 300;
+    color: #1F2937;
+}
+
+.forecast-panel__summary-condition {
+    font-size: 13px;
+    color: #9CA3AF;
+    margin-top: 2px;
+}
+
+.forecast-panel__summary-temps {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.forecast-panel__temp-high {
+    font-size: 32px;
+    font-weight: 300;
+    color: #1F2937;
+    line-height: 1.1;
+}
+
+.forecast-panel__temp-low {
+    font-size: 16px;
+    color: #9CA3AF;
+}
+
+.forecast-panel__divider {
+    height: 1px;
+    background: #F3F4F6;
+    margin: 12px 0;
+}
+
+.forecast-panel__summary-stats {
+    display: flex;
+    align-items: center;
+}
+
+.forecast-panel__stat {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.forecast-panel__stat-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #9CA3AF;
+    margin-bottom: 3px;
+}
+
+.forecast-panel__stat-val {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1F2937;
+}
+
+.forecast-panel__stat-divider {
+    width: 1px;
+    height: 28px;
+    background: #F3F4F6;
+}
+
+.forecast-panel__risks-card {
+    background: white;
+    border: 1.5px solid #E5E7EB;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.forecast-panel__risk-row {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 6px 0;
+}
+
+.forecast-panel__risk-icon {
+    font-size: 20px;
+    width: 28px;
+    text-align: center;
+}
+
+.forecast-panel__risk-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.forecast-panel__risk-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1F2937;
+}
+
+.forecast-panel__risk-badge {
+    padding: 3px 9px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.forecast-panel__tip {
+    margin-top: 6px;
+    background: #F9FAFB;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 12px;
+    color: #374151;
+    line-height: 1.5;
+}
+
+.forecast-panel__indoor-card {
+    background: white;
+    border: 1.5px solid #E5E7EB;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+}
+
+.forecast-panel__indoor-icon {
+    font-size: 24px;
+}
+
+.forecast-panel__indoor-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1F2937;
+    margin-bottom: 4px;
+    line-height: 1.4;
+}
+
+.forecast-panel__indoor-sub {
+    font-size: 12px;
+    color: #9CA3AF;
+    line-height: 1.6;
+}

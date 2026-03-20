@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
-const pdfParse = require('pdf-parse');
+const { PDFParse } = require('pdf-parse');
 import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters';
 import { OllamaEmbeddings } from '@langchain/ollama';
 import { Ollama } from '@langchain/ollama';
@@ -57,7 +57,8 @@ async function initializeKnowledgeBase() {
             const fullPath = path.join(activeDir, file);
             if (file.endsWith('.pdf')) {
                 const dataBuffer = fs.readFileSync(fullPath);
-                const data = await pdfParse(dataBuffer);
+                const pdfParser = new PDFParse({ data: dataBuffer });
+                const data = await pdfParser.getText();
                 allText += `\n\n--- Document: ${file} ---\n` + data.text;
             } else if (file.endsWith('.txt') && file !== 'README.txt') {
                 const textData = fs.readFileSync(fullPath, 'utf-8');
