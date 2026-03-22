@@ -40,3 +40,8 @@ export const spacing = {
   lg: 16,
   xl: 24,
 };
+
+export function convertTemp(f, useCelsius) {
+  if (!useCelsius) return `${f}°F`;
+  return `${Math.round((f - 32) * 5 / 9)}°C`;
+}

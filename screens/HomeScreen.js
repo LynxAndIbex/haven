@@ -1,5 +1,7 @@
 import React from 'react';
 import AIChat from '../components/AIChat';
+import { useSettings } from '../context/SettingsContext';
+import { convertTemp } from '../theme';
 import WeatherStrip from '../components/weatherstrip.js';
 import { getWeatherData, buildWeatherContext } from '../data/weather';
 import {
@@ -33,13 +35,14 @@ const STATUS_BG = {
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const [activeRoom, setActiveRoom]             = React.useState('kitchen');
-  const [activeScenario, setActiveScenario]     = React.useState('normal');
-  const [pickerOpen, setPickerOpen]             = React.useState(false);
-  const [chatOpen, setChatOpen]                 = React.useState(false);
-  const [weather, setWeather]                   = React.useState(null);
-  const [weatherLoading, setWeatherLoading]     = React.useState(true);
-  const [weatherError, setWeatherError]         = React.useState(null);
+  const { settings } = useSettings();
+  const [activeRoom, setActiveRoom]         = React.useState('kitchen');
+  const [activeScenario, setActiveScenario] = React.useState('normal');
+  const [pickerOpen, setPickerOpen]         = React.useState(false);
+  const [chatOpen, setChatOpen]             = React.useState(false);
+  const [weather, setWeather]               = React.useState(null);
+  const [weatherLoading, setWeatherLoading] = React.useState(true);
+  const [weatherError, setWeatherError]     = React.useState(null);
 
   const scenario = SCENARIOS[activeScenario];
 
@@ -175,29 +178,41 @@ export default function HomeScreen() {
         {/* METRICS */}
         <Text style={styles.sectionLabel}>Sensor Readings</Text>
         <View style={styles.metricsGrid}>
-          {scenario.metrics.map((m, i) => (
-            <View
-              key={i}
-              style={[
-                styles.metricCard,
-                m.cls === 'warn'   && styles.metricCardWarn,
-                m.cls === 'danger' && styles.metricCardDanger,
-              ]}
-            >
-              <Text style={styles.metricName}>{m.name}</Text>
-              <Text style={[styles.metricVal, { color: STATUS_COLORS[m.cls] }]}>{m.val}</Text>
-              <Text style={styles.metricUnit}>{m.unit}</Text>
-              <View style={styles.barTrack}>
-                <View style={[
-                  styles.barFill,
-                  { width: `${m.bar}%`, backgroundColor: STATUS_COLORS[m.cls] }
-                ]} />
+          {scenario.metrics.map((m, i) => {
+            const isTemp = m.name === 'Temp';
+            const displayVal = isTemp
+              ? convertTemp(parseFloat(m.val), settings.useCelsius).split('°')[0]
+              : m.val;
+            const displayUnit = isTemp
+              ? (settings.useCelsius ? '°C' : '°F')
+              : m.unit;
+
+            return (
+              <View
+                key={i}
+                style={[
+                  styles.metricCard,
+                  m.cls === 'warn'   && styles.metricCardWarn,
+                  m.cls === 'danger' && styles.metricCardDanger,
+                ]}
+              >
+                <Text style={styles.metricName}>{m.name}</Text>
+                <Text style={[styles.metricVal, { color: STATUS_COLORS[m.cls] }]}>
+                  {displayVal}
+                </Text>
+                <Text style={styles.metricUnit}>{displayUnit}</Text>
+                <View style={styles.barTrack}>
+                  <View style={[
+                    styles.barFill,
+                    { width: `${m.bar}%`, backgroundColor: STATUS_COLORS[m.cls] }
+                  ]} />
+                </View>
+                <Text style={[styles.metricStatus, { color: STATUS_COLORS[m.cls] }]}>
+                  {m.status}
+                </Text>
               </View>
-              <Text style={[styles.metricStatus, { color: STATUS_COLORS[m.cls] }]}>
-                {m.status}
-              </Text>
-            </View>
-          ))}
+            );
+          })}
         </View>
 
         {/* INSIGHT BUTTON */}

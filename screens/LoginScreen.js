@@ -20,8 +20,9 @@ export default function LoginScreen() {
     if (!email || !password) return;
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
+    console.log('Login result: ', JSON.stringify({ data, error}));
     setLoading(false);
-    if (error) Alert.alert('Login failed', error.message);
+    if (error) Alert.alert('Incorrect email or password. Remember your password must be at least 6 characters.', error.message);
   };
 
   const handleSignup = async () => {

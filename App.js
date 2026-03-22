@@ -5,7 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import { View, ActivityIndicator } from 'react-native';
 import { colors } from './theme';
 import { SettingsProvider, useSettings } from './context/SettingsContext';
-
+import SensorsScreen from './screens/SensorsScreen';
 import HomeScreen     from './screens/HomeScreen';
 import HistoryScreen  from './screens/HistoryScreen';
 import ForecastScreen from './screens/ForecastScreen';
@@ -57,6 +57,7 @@ function AppNavigator() {
       <Tab.Screen name="History"  component={HistoryScreen}  options={{ tabBarLabel: 'History'  }}/>
       <Tab.Screen name="Forecast" component={ForecastScreen} options={{ tabBarLabel: 'Forecast' }}/>
       <Tab.Screen name="Settings" component={SettingsScreen} options={{ tabBarLabel: 'Settings' }}/>
+      <Tab.Screen name="Sensors" component={SensorsScreen} options={{ tabBarLabel: 'Sensors' }} />
     </Tab.Navigator>
   );
 }
